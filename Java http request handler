@@ -1,0 +1,40 @@
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.sql.*;
+
+public class RequestServlet extends HttpServlet {
+
+  public void doGet(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+      
+    // Get the request parameters
+    String method = request.getMethod();
+    String url = request.getRequestURL().toString();
+    String queryString = request.getQueryString();
+    
+    // Store the request in the database
+    try {
+      Connection conn = getConnection();
+      Statement stmt = conn.createStatement();
+      String sql = "INSERT INTO requests (method, url, query_string) VALUES ('" +
+                   method + "', '" + url + "', '" + queryString + "')";
+      stmt.executeUpdate(sql);
+      conn.close();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    
+    // Send a response back to the client
+    PrintWriter out = response.getWriter();
+    out.println("Request received: " + method + " " + url + "?" + queryString);
+  }
+  
+  private Connection getConnection() throws SQLException {
+    String url = "jdbc:oracle:thin:@localhost:1521:XE";
+    String user = "username";
+    String password = "password";
+    return DriverManager.getConnection(url, user, password);
+  }
+
+}
